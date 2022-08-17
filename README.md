@@ -1,3 +1,5 @@
+# KaFSP: Knowledge-Aware Fuzzy Semantic Parsing for Conversational Question Answering over a Large-Scale Knowledge Base
+
 ## Requirements and Setup
 
 Python version >= 3.7
@@ -7,7 +9,9 @@ PyTorch version >= 1.6.0
 PyTorch Geometric (PyG) >= 1.6.1
 
 ``` bash
-cd KaFSP
+# clone the repository
+git clone https://github.com/endrikacupaj/LASAGNE.git
+cd LASAGNE
 pip install -r requirements.txt
 ```
 
@@ -40,7 +44,7 @@ python annotate_csqa/preprocess.py --partition train --annotation_task all --rea
 Before training the framework, we need to create BERT embeddings for the knowledge graph (entity) types and relations. You can do that by running.
 ``` bash
 # create bert embeddings
-python scripts/node_embeddings.py
+python scripts/bert_embeddings.py
 ```
 
 ## Train Framework
@@ -50,24 +54,55 @@ For training you will need to adjust the paths in [args](args.py) file. At the s
 python train.py
 ```
 
+
 ## Test
-For testing we have two steps.
+For testing we have three steps.
 ### Generate Actions
 First, we generate the actions and save then in JSON file using the trained model.
 ``` bash
 # generate actions for a specific question type
 python inference.py --question_type Clarification
 ```
+### Entity Disambiguation
+
+Since the entity disambiguation module is trained separately, you need to build the training data first.
+``` bash
+cd ED
+python prepare.py
+python train.py
+cd ../
+```
+After training, the model can be used to disambiguate the entities in /path/to/actions.json.
+``` bash
+python entity_disambiguation.py
+```
 
 ### Execute Actions
-Second, we execute the actions and get the results from Wikidata files.
+Finally, we execute the actions and get the results from Wikidata files.
 ``` bash
 # execute actions for a specific question type
 python action_executor/run.py --file_path /path/to/actions.json --question_type Clarification
 ```
 
-### Entity Disambiguation
-We need to change the "data_path" in the file entity_disambiguation.py to get the disambiguated files.
-``` bash
-python entity_disambiguation.py 
+
+
+## License
+The repository is under [MIT License](LICENCE).
+
+## Cite
+```bash
+@inproceedings{li-xiong-2022-kafsp,
+    title = "{K}a{FSP}: Knowledge-Aware Fuzzy Semantic Parsing for Conversational Question Answering over a Large-Scale Knowledge Base",
+    author = "Li, Junzhuo  and
+      Xiong, Deyi",
+    booktitle = "Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = may,
+    year = "2022",
+    address = "Dublin, Ireland",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.acl-long.35",
+    doi = "10.18653/v1/2022.acl-long.35",
+    pages = "461--473",
+    abstract = "In this paper, we study two issues of semantic parsing approaches to conversational question answering over a large-scale knowledge base: (1) The actions defined in grammar are not sufficient to handle uncertain reasoning common in real-world scenarios. (2) Knowledge base information is not well exploited and incorporated into semantic parsing. To mitigate the two issues, we propose a knowledge-aware fuzzy semantic parsing framework (KaFSP). It defines fuzzy comparison operations in the grammar system for uncertain reasoning based on the fuzzy set theory. In order to enhance the interaction between semantic parsing and knowledge base, we incorporate entity triples from the knowledge base into a knowledge-aware entity disambiguation module. Additionally, we propose a multi-label classification framework to not only capture correlations between entity types and relations but also detect knowledge base information relevant to the current utterance. Both enhancements are based on pre-trained language models. Experiments on a large-scale conversational question answering benchmark demonstrate that the proposed KaFSP achieves significant improvements over previous state-of-the-art models, setting new SOTA results on 8 out of 10 question types, gaining improvements of over 10{\%} F1 or accuracy on 3 question types, and improving overall F1 from 83.01{\%} to 85.33{\%}. The source code of KaFSP is available at https://github.com/tjunlp-lab/KaFSP.",
+}
 ```
